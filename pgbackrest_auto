@@ -335,7 +335,7 @@ then
 fi
 
 # checkdb_mode
-if [[ -z $CHECKDB ]]; then 
+if [[ -z $CHECKDB ]]; then
     [[ "${DUMMYDUMP}" = "yes" ]] && CHECKDB_MODE+="dummy-dump "
     [[ "${CHECKSUMS}" = "yes" ]] && CHECKDB_MODE+="checksums "
     [[ "${AMCHECK}" = "yes" ]] && CHECKDB_MODE+="amcheck "
@@ -642,6 +642,8 @@ function postgresql_conf(){
     # max_locks_per_transaction
     max_locks_per_transaction=$("${PG_BIN_DIR}"/pg_controldata "${PGDATA}" | grep max_locks_per_xact | awk '{print $3}')
     echo "max_locks_per_transaction = ${max_locks_per_transaction}" >> "${PG_CONF_DIR}"/postgresql.conf
+    # enable pgaudit to run amcheck
+    echo "shared_preload_libraries = 'pgaudit'" >> "${PG_CONF_DIR}"/postgresql.conf
 }
 
 
