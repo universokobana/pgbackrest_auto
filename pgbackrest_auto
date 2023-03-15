@@ -270,7 +270,11 @@ if [[ -n $DATNAME && -n $CHECKDB ]]; then error "Not use --checkdb with --datnam
 # version
 if [[ -z $PGVER ]]; then
     # get the postgres version from stanza
-    PGVER=$(pgbackrest info --stanza="${FROM}" --output=json | jq -r '.[].db[-1]."version"')
+    if [[ -z $CONFIG ]]; then
+      PGVER=$(pgbackrest info --stanza="${FROM}" --output=json | jq -r '.[].db[-1]."version"')
+    else
+      PGVER=$(pgbackrest info --stanza="${FROM}" --config="${CONFIG}" --output=json | jq -r '.[].db[-1]."version"')
+    fi
     if [[ "$PGVER" = "null" ]]; then
         error "could not determine the postgres version using \"pgbackrest info --stanza=${FROM}\""
     fi
