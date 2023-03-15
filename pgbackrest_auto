@@ -16,6 +16,11 @@ mail_from="backuper@my-domain.com"
 mail_to="dba@my-domain.com"
 attach_report=false  # or 'true'
 
+function notify(){
+  sendmail
+  notify_slack
+}
+
 # Send report to mail address
 function sendmail(){
     SMTP="${smtp_server}"
@@ -29,6 +34,14 @@ function sendmail(){
     else
         sendemail -v -o message-content-type=text -o message-file="${log}" -f "${MAIL_FROM}" -t "${EMAIL}" -u "${SUBJECT}" -s "${SMTP}"
     fi
+}
+
+# Send report to slack
+function notify_slack() {
+  if [[ -n "$SLACK_CLI_TOKEN" ]]; then
+    (slack chat send --text "postgres restore report for '${FROM}': $(date +%Y-%m-%d) (auto-generated)" --channel "$SLACK_CHANNEL" >/dev/null) || true
+    (slack chat send --text "${log}" --channel "$SLACK_CHANNEL" >/dev/null) || true
+  fi
 }
 
 function info(){
@@ -48,7 +61,7 @@ function error(){
     sed -i 's/Result_status=1/Result_status=0/g' "${status_file}"
     logger -p user.error -t "$(basename "$0")" "$msg"
     # sendmail
-    if [[ "${REPORT}" = "yes" ]]; then sendmail; fi
+    if [[ "${REPORT}" = "yes" ]]; then notify; fi
     # remove lock file
     if [ -f "${lock}" ]; then rm "${lock}"; fi
     exit 1
@@ -175,7 +188,7 @@ Usage: $0 --from=STANZANAME --to=DATA_DIRECTORY [ --datname=DATABASE [...] ] [ -
         Clear PostgreSQL Data directory after Restore (the path was specified in the \"--to\" parameter ) [ optional ]
 
 --report
-        Send report to mail address
+        Send report to mail address and to Slack (when SLACK_CLI_TOKEN and SLACK_CHANNEL present)
 
 --norestore
         Do not restore a stanza but use an already existing cluster
@@ -749,7 +762,7 @@ if [[ "${CLEAR}" = "yes" ]]; then
 fi
 if [[ "${REPORT}" = "yes" ]]; then
     info "[STEP $((STEP++))]: Send report to mail address"
-    sendmail
+    notify
 fi
 
 #set result status of restore for zabbix
