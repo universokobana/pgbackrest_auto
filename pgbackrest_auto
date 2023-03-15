@@ -11,10 +11,10 @@
 ver="1.5.0"
 
 # variables for function "sendmail()"
-smtp_server="10.128.64.5:25"
-mail_from="backuper@my-domain.com"
-mail_to="dba@my-domain.com"
-attach_report=false  # or 'true'
+smtp_server=$PGBACKREST_AUTO_SMTP_SERVER
+mail_from=$PGBACKREST_AUTO_MAIL_FROM
+mail_to=$PGBACKREST_AUTO_MAIL_TO
+attach_report=$PGBACKREST_AUTO_ATTACH_REPORT
 
 function notify(){
   sendmail
@@ -29,7 +29,7 @@ function sendmail(){
     MAIL_FROM="${mail_from}"
 
     # send mail
-    if [ "$attach_report" = true ]; then
+    if [ "$attach_report" = 'true' ]; then
         sendemail -v -o message-content-type=text -o message-file="${log}" -f "${MAIL_FROM}" -t "${EMAIL}" -u "${SUBJECT}" -s "${SMTP}" -a "${log}"
     else
         sendemail -v -o message-content-type=text -o message-file="${log}" -f "${MAIL_FROM}" -t "${EMAIL}" -u "${SUBJECT}" -s "${SMTP}"
