@@ -17,8 +17,8 @@ mail_to=$PGBACKREST_AUTO_MAIL_TO
 attach_report=$PGBACKREST_AUTO_ATTACH_REPORT
 
 function notify(){
-  sendmail
   notify_slack
+  sendmail
 }
 
 # Send report to mail address
